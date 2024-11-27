@@ -68,7 +68,7 @@ def create_fcps_and_pois_map(fcp_json_d, pois_d, fps_pois_ptf):
 
     forecast_points = folium.FeatureGroup(name="Forecast Points PTF", control=True).add_to(m)
     forecast_points_jabba = folium.FeatureGroup(name="Forecast Points Bernardi", control=True).add_to(m)
-    points_of_interest = folium.FeatureGroup(name="Points of Interest", show=True).add_to(m)
+    points_of_interest = folium.FeatureGroup(name="Points of Interest", show=False).add_to(m)
     points_of_interest_associated = folium.FeatureGroup(name="Points of Interest associated", control=True).add_to(m)
 
     # plotting all fcp
