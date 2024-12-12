@@ -90,10 +90,10 @@ def create_fcps_and_pois_map(fcp_json_d, pois_d, fps_pois_ptf, ptf_stations_d):
                    zoom_start = 5)
 
     forecast_points = folium.FeatureGroup(name="Forecast Points PTF", control=True, show=False).add_to(m)
-    forecast_points_jabba = folium.FeatureGroup(name="Forecast Points Bernardi", control=True).add_to(m)
+    forecast_points_jabba = folium.FeatureGroup(name="Forecast Points Tsuface", control=True).add_to(m)
     points_of_interest = folium.FeatureGroup(name="Points of Interest", control=True, show=False).add_to(m)
     points_of_interest_associated = folium.FeatureGroup(name="Points of Interest associated", control=True, show=False).add_to(m)
-    ptf_stations = folium.FeatureGroup(name="Sea level Stations", control=True).add_to(m)
+    ptf_stations = folium.FeatureGroup(name="Sea-level Stations Tsuface", control=True).add_to(m)
 
     # plotting all fcp
     for name, coords in fcp_json_d.items():
@@ -194,10 +194,10 @@ def create_legend(m):
         background-color:white; opacity: 0.85;">
         &nbsp; <b>Legend</b> <br>
         &nbsp; Forecast Points PTF &nbsp; <i class="fa fa-circle" style="color:red"></i><br>
-        &nbsp; Forecast Points Bernardi &nbsp; <i class="fa fa-circle" style="color:blue"></i><br>
+        &nbsp; Forecast Points Tsuface &nbsp; <i class="fa fa-circle" style="color:blue"></i><br>
         &nbsp; Points of Interest associated &nbsp; <i class="fa fa-circle fa-lg" style="color:green"></i><br>
         &nbsp; Points of Interest NEAM &nbsp; <i class="fa fa-circle" style="color:green"></i><br>
-        &nbsp; Sea_level Stations &nbsp; <i class="fa fa-line-chart fa-lg" style="color:blue"></i><br>
+        &nbsp; Sea-level Stations Tsuface &nbsp; <i class="fa fa-line-chart fa-lg" style="color:blue"></i><br>
     </div>
     '''
 
@@ -205,7 +205,7 @@ def create_legend(m):
     m.get_root().html.add_child(folium.Element(legend_html))
 
 
-def load_fcp_full_list_json(filename):
+def load_tsuface_fcp(filename):
     '''
     json file from jabba service from fabrizio.b
     <class 'dict'> dict_keys(['meta', 'data'])
@@ -215,21 +215,40 @@ def load_fcp_full_list_json(filename):
     'fk_it_region': None, 'fk_fcp_status': 11, 
     'modified': '2021-10-14 07:38:39', 
     'calc_lat': 37.644, 'calc_lon': 21.323, 'calc_depth': -44.44921875}
+
+    json from tsuface
+    {'id': 1, 'name': 'KATAKOLO', 'state': 'GREECE', 'lat': 37.644, 'lon': 21.323, 'depth': 0, 
+    'fk_it_region': None, 'fk_fcp_status': 11, 'modified': '2021-10-14 07:38:39', 
+    'calc_lat': 37.644, 'calc_lon': 21.323, 'calc_depth': -44.44921875, 'status': {'id': 11, 'name': 'official'}}
     '''
 
     if filename is not None:
         filename = filename
 
-    with open(filename, 'r', encoding='utf-8') as fcp_file:
-        txt_fcp = json.load(fcp_file)
-        n_fcp = txt_fcp['meta']['total']
-        # for i in range(n_fcp):
-        #     if txt['data'][i]['state'] == 'ITALY':
-        #         print(txt['data'][i]['name'], txt['data'][i]['fk_fcp_status'])
+    with open(filename, 'r', encoding='utf-8') as tsuface_fcp_file:
+        fcp_list = json.load(tsuface_fcp_file)
+        # n_st = len(fcp_list)
+        fcps_d = dict()
+        for ic, fcp_d in enumerate(fcp_list):
+            if fcp_d['lat'] is not None or fcp_d['lon'] is not None :
+                print(fcp_d['name'], fcp_d['lon'], fcp_d['lat'])
+                fcps_d[fcp_d['name']] = (float(fcp_d['lon']), float(fcp_d['lat']))
+                # ic += 1
+    
+    # print(f"{ic}/{n_st}")
+    return fcps_d
 
-    keys = [txt_fcp['data'][item]['name'] for item in range(n_fcp)]
-    values = [(txt_fcp['data'][item]['lon'], txt_fcp['data'][item]['lat']) for item in range(n_fcp)]
-    return dict(zip(keys, values))
+
+
+    # with open(filename, 'r', encoding='utf-8') as fcp_file:
+    #     txt_fcp = json.load(fcp_file)
+    #     print(txt_fcp[0])
+    #     sys.exit()
+    #     n_fcp = txt_fcp['meta']['total']
+
+    # keys = [txt_fcp['data'][item]['name'] for item in range(n_fcp)]
+    # values = [(txt_fcp['data'][item]['lon'], txt_fcp['data'][item]['lat']) for item in range(n_fcp)]
+    # return dict(zip(keys, values))
 
 
 def load_pois(filename):
@@ -243,7 +262,7 @@ def load_pois(filename):
     return dict(zip(keys, values))
 
 
-def load_ptf_stations(filename):
+def load_tsuface_stations(filename):
     '''
     json file from tsuface
     {'id': 118741, 'fk_fcp': 11211, 'fk_sensor_type': 71, 'station': 'aigi', 'channel': 'UTZ', 'network': 'ZZ', 'location': '01', 
@@ -271,8 +290,9 @@ def load_ptf_stations(filename):
 def main():
 
     # create dictionary from json file from fabrizio.b jabba service
-    fcp_json_f = os.path.join('data', 'fcp_full_list_jabba.json')
-    fcp_json_d = load_fcp_full_list_json(fcp_json_f)
+    # fcp_json_f = os.path.join('data', 'fcp_full_list_jabba.json')
+    fcp_json_f = os.path.join('data', 'FCPs_data_export_1734028135028.json')
+    fcp_json_d = load_tsuface_fcp(fcp_json_f)
 
     # create dictionary from npy file used in ptf
     pois_f = os.path.join('data', 'pois.npy')
@@ -284,7 +304,7 @@ def main():
  
     # ptf stations
     ptf_stations_f = os.path.join('data', 'stations_data_export_2024.12.12.json')
-    ptf_stations_d = load_ptf_stations(ptf_stations_f)
+    ptf_stations_d = load_tsuface_stations(ptf_stations_f)
 
     # print on screen pois associated to fcp in ptf
     print_pois_to_fcp(pois_to_fcp_ptf)
