@@ -291,7 +291,7 @@ def main():
 
     # create dictionary from json file from fabrizio.b jabba service
     # fcp_json_f = os.path.join('data', 'fcp_full_list_jabba.json')
-    fcp_json_f = os.path.join('data', 'FCPs_data_export_1734028135028.json')
+    fcp_json_f = os.path.join('data', 'FCPs_data_export_2024.12.18.json')
     fcp_json_d = load_tsuface_fcp(fcp_json_f)
 
     # create dictionary from npy file used in ptf
@@ -303,7 +303,7 @@ def main():
     pois_to_fcp_ptf = np.load(pois_to_fcp_f, allow_pickle=True).item()
  
     # ptf stations
-    ptf_stations_f = os.path.join('data', 'stations_data_export_2024.12.12.json')
+    ptf_stations_f = os.path.join('data', 'stations_data_export_2024.12.18.json')
     ptf_stations_d = load_tsuface_stations(ptf_stations_f)
 
     # print on screen pois associated to fcp in ptf
