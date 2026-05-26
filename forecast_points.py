@@ -117,7 +117,8 @@ def create_fcps_and_pois_map(fcp_d, pois_d, pois_to_fcp, sea_level_stations_d, f
                     ).add_to(forecast_points_added)
 
 
-
+        lines = [[(coords[1], coords[0]),(pois_d[poi][1], pois_d[poi][0])] for poi in pois_to_fcp[name][0]]
+        folium.PolyLine(lines, color='red', opacity=0.5).add_to(m)
 
 
     # plotting all fcp
@@ -135,6 +136,9 @@ def create_fcps_and_pois_map(fcp_d, pois_d, pois_to_fcp, sea_level_stations_d, f
             tooltip=f"{name}: {pois_to_fcp[name][0]}",
             popup=f"{name} {pois_to_fcp[name][0]}"
                     ).add_to(forecast_points)
+
+        lines = [[(coords[1], coords[0]),(pois_d[poi][1], pois_d[poi][0])] for poi in pois_to_fcp[name][0]]
+        folium.PolyLine(lines, color='blue', opacity=0.5).add_to(m)
 
     # plotting all pois
     for name, coords in pois_d.items():
@@ -328,13 +332,19 @@ def save_pois_to_fcp_ptf(fcp_d):
             #print(k, a[k])
             #b[k] = [v, [fcp_d[ind]["lon"], fcp_d[ind]["lat"]] ]
             ic += 1
-            d[k] = [ ['med' + item.zfill(5) for item in pois_to_fcp_d[name]], list(v)]
+            if v[0] < -5.5:
+                reg = 'nea'
+            else:
+                reg = 'med'
+            d[k] = [ [reg + item.zfill(5) for item in pois_to_fcp_d[name]], list(v)]
             #print(type(d[k][1]))
             #print(ic, k, ' '.join(item for item in pois_to_fcp_d[name]), v)
         else:
             #pass
             print('MISSING', k)
     
+    d['CEUTA'][0][1] = 'nea05194'
+    d['TARIFA'][0][1] = 'med00354'
     print(ic, len(pois_to_fcp_d.keys()))
     np.save('pois_to_fcp_full.npy', d, allow_pickle='True')
 
