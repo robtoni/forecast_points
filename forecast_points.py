@@ -79,7 +79,7 @@ def list_comparison():
 
 
 
-def create_fcps_and_pois_map(fcp_json_d, pois_d, fps_pois_ptf, sea_level_stations_d, fcp_added_d):
+def create_fcps_and_pois_map(fcp_d, pois_d, pois_to_fcp, sea_level_stations_d, fcp_added_d):
     '''
     plotting map using folium
 
@@ -98,9 +98,10 @@ def create_fcps_and_pois_map(fcp_json_d, pois_d, fps_pois_ptf, sea_level_station
     points_of_interest = folium.FeatureGroup(name="Points of Interest", control=True, show=True).add_to(m)
     points_of_interest_associated = folium.FeatureGroup(name="Points of Interest associated", control=True, show=False).add_to(m)
 
-
     # plotting added fcp
     for name, coords in fcp_added_d.items():
+
+        #print(pois_to_fcp[name][0])
         folium.CircleMarker(
             location = (coords[1], coords[0]),
             radius=6,
@@ -109,8 +110,10 @@ def create_fcps_and_pois_map(fcp_json_d, pois_d, fps_pois_ptf, sea_level_station
             #fill_opacity=0.6,
             weight=2,
             #icon = folium.Icon("blue"),
-            tooltip=f"{name}: {coords[1]}, {coords[0]}",
-            popup=f"{name} {coords[1]}, {coords[0]}"
+            #tooltip=f"{name}: {coords[1]}, {coords[0]}",
+            #popup=f"{name} {coords[1]}, {coords[0]}"
+            tooltip=f"{name}: {pois_to_fcp[name][0]}",
+            popup=f"{name} {pois_to_fcp[name][0]}"
                     ).add_to(forecast_points_added)
 
 
@@ -118,7 +121,7 @@ def create_fcps_and_pois_map(fcp_json_d, pois_d, fps_pois_ptf, sea_level_station
 
 
     # plotting all fcp
-    for name, coords in fcp_json_d.items():
+    for name, coords in fcp_d.items():
         folium.CircleMarker(
             location = (coords[1], coords[0]),
             radius=6,
@@ -127,8 +130,10 @@ def create_fcps_and_pois_map(fcp_json_d, pois_d, fps_pois_ptf, sea_level_station
             #fill_opacity=0.6,
             weight=2,
             #icon = folium.Icon("blue"),
-            tooltip=f"{name}: {coords[1]}, {coords[0]}",
-            popup=f"{name} {coords[1]}, {coords[0]}"
+            #tooltip=f"{name}: {coords[1]}, {coords[0]}",
+            #popup=f"{name} {coords[1]}, {coords[0]}"
+            tooltip=f"{name}: {pois_to_fcp[name][0]}",
+            popup=f"{name} {pois_to_fcp[name][0]}"
                     ).add_to(forecast_points)
 
     # plotting all pois
@@ -301,10 +306,9 @@ def load_tsuface_stations(filename):
 def save_pois_to_fcp_ptf(fcp_d):
     '''
     '''
-    #print(fcp_d)
     fcp_tot = len(fcp_d.keys())
     pois_to_fcp_d = dict()
-    with open('pois_to_fcp_new_AP.txt', 'r') as pois_to_fcp_f:
+    with open('pois_to_fcp_new_20260521.txt', 'r') as pois_to_fcp_f:
         for line in pois_to_fcp_f.readlines():
             tmp = line.split()
             pois_to_fcp_d[tmp[0]] = [item for item in tmp[1:]]
@@ -328,8 +332,9 @@ def save_pois_to_fcp_ptf(fcp_d):
             #print(type(d[k][1]))
             #print(ic, k, ' '.join(item for item in pois_to_fcp_d[name]), v)
         else:
-            pass
-            #print('MISSING', k)
+            #pass
+            print('MISSING', k)
+    
     print(ic, len(pois_to_fcp_d.keys()))
     np.save('pois_to_fcp_full.npy', d, allow_pickle='True')
 
@@ -337,45 +342,56 @@ def save_pois_to_fcp_ptf(fcp_d):
 def main():
 
     # new fcp to be added
-    df = pd.read_csv('new_fcps_2026_province.csv')
+    df = pd.read_csv('new_fcps_2026.csv')
     #print(df.columns)
     n_fcp_added = df.shape[0]
     fcp_added_d = {}
     for i in range(n_fcp_added):
         # print(df['FCP'][i], df['LON_CALC'][i], df['LAT_CALC'][i])
-        fcp_added_d[df['FCP'][i]] = (float(df['LON_CALC'][i]), float(df['LAT_CALC'][i]))
+        fcp_added_d[df['Name'][i]] = (float(df['CalcLon'][i]), float(df['CalcLat'][i]))
 
     #print(fcp_added_d)
     # sys.exit()
 
 
-    # create dictionary from json file from fabrizio.b jabba service
-    # fcp_json_f = os.path.join('data', 'fcp_full_list_jabba.json')
-    fcp_json_f = os.path.join('data', 'FCPs_data_export_2025.05.13.json')
-    fcp_json_d = load_tsuface_fcp(fcp_json_f)
+    # # create dictionary from json file from fabrizio.b jabba service
+    # # fcp_json_f = os.path.join('data', 'fcp_full_list_jabba.json')
+    # #fcp_json_f = os.path.join('data', 'FCPs_data_export_2025.05.13.json')
+    # fcp_json_f = os.path.join('data', 'FCPs_data_export_2026.05.21.json')
+    # fcp_json_d = load_tsuface_fcp(fcp_json_f)
+
+
+    # print(fcp_json_d)
+    # fcp from csv
+    df = pd.read_csv('fcps_2026.csv')
+    n_fcp = df.shape[0]
+    fcp_d = {}
+    for i in range(n_fcp):
+        fcp_d[df['Name'][i]] = (float(df['CalcLon'][i]), float(df['CalcLat'][i]))
 
     # ptf stations
-    sea_level_stations_f = os.path.join('data', 'stations_data_export_2024.12.18.json')
+    sea_level_stations_f = os.path.join('data', 'stations_data_export_2026.05.26.json')
     sea_level_stations_d = load_tsuface_stations(sea_level_stations_f)
 
     # create dictionary from npy file used in ptf
     pois_f = os.path.join('data', 'pois.npy')
     pois_d = load_pois(pois_f)
-
+    
     # create pois_to_fcp.npy file for ptf 
-    save_pois_to_fcp_ptf(fcp_json_d)
+    save_pois_to_fcp_ptf(fcp_d | fcp_added_d)
     #sys.exit()
     # fcp and pois association
-    pois_to_fcp_f = os.path.join('data', 'pois_to_fcp.npy')
-    pois_to_fcp_ptf = np.load(pois_to_fcp_f, allow_pickle=True).item()
+    pois_to_fcp_f = os.path.join('pois_to_fcp_full.npy')
+    pois_to_fcp = np.load(pois_to_fcp_f, allow_pickle=True).item()
+    print(len(pois_to_fcp.keys()))
  
     # print on screen pois associated to fcp in ptf
-    print_pois_to_fcp(pois_to_fcp_ptf)
+    print_pois_to_fcp(pois_to_fcp)
     print_pois_neamthm18(pois_d)
 
 
     # create map
-    create_fcps_and_pois_map(fcp_json_d, pois_d, pois_to_fcp_ptf, sea_level_stations_d, fcp_added_d)
+    create_fcps_and_pois_map(fcp_d, pois_d, pois_to_fcp, sea_level_stations_d, fcp_added_d)
 
 if __name__ == "__main__":
     main()
